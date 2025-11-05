@@ -3,12 +3,13 @@
 Il vous est demandé d'écrire le code permettant de requêter une base de données MongoDB.
 Pour se faire vous pourrez utiliser le client graphique **Mongo Compass** et/ou **Mongosh**.
 
-Le fichier "films.json" de ce dépôt contient les **documents** à insérer dans une collection **movies**.
+Le fichier "movies.json" de ce dépôt contient les **documents** à insérer dans une collection **movies**.
 
 Si vous avez démarré votre base de données en utilisant **Docker cette collection est déjà crée**.
 
 Si vous avez une base de données vierge (installation local de MongoDB) il vous faudra :
-1. créer la base de données `cinema`
+
+1. créer la base de données `films`
 2. créer une collection `movies`
 3. charger les documents dans la collection `movies` grâce au fichier `movies.json`
 
@@ -17,6 +18,7 @@ Le GIF suivant présente la manière de faire avec un SGBD vierge :
 
 Une fois votre base de données en place, vous pourrez commencer la série de requêtes.
 Mongo Compass propose deux modes de fonctionnement :
+
 1. une console inspirée de Mongosh
 2. des composants graphiques facilitant le requêtage
 
@@ -29,17 +31,28 @@ La console Compass est accessible de la façon suivante :
 1. Afficher tous les titres de films de "Spielberg" et du genre "Aventure".
 
 > [!TIP]
-> Pour rappel, la méthode `find` prend deux paramètres  :
+> Pour rappel, la méthode `find` prend deux paramètres :
 >
 > ```javascript
 >   db.<nom-collection>.find(<query>, <projection>)
 > ```
+>
 > - query : restriction sur les valeurs des documents
 > - projection : permet de choisir ce que l'on souhaite sélectionner
 >
 > Voici un code à compléter :
+>
 > ```javascript
->    db.movies.find({ "genre": ???, "director.last_name": "????" }, { "title": ??? })
+>    db.films.find({ "genre": ???, "director.last_name": "????" }, { "title": ??? })
+> ```
+>
+> Voici la réponse :
+>
+> ```js
+> db.films.find(
+>   { genre: "Aventure", "director.last_name": "Spielberg" },
+>   { title: true }
+> );
 > ```
 
 ---
@@ -50,8 +63,15 @@ La console Compass est accessible de la façon suivante :
 > Indice
 >
 > Voici un code à compléter :
+>
 > ```javascript
->   db.movies.find({ year : ??? }, { title: ??? })
+>   db.films.find({ year : ??? }, { title: ??? })
+> ```
+>
+> Voici la réponse :
+>
+> ```js
+> db.films.find({ year: 2000 }, { title: true });
 > ```
 
 </details>
@@ -59,6 +79,11 @@ La console Compass est accessible de la façon suivante :
 ---
 
 3. Afficher tous les titres des films du genre "Action".
+   > Voici la réponse :
+   >
+   > ```js
+   > db.films.find({ genre: "Action" }, { title: true });
+   > ```
 
 ---
 
@@ -66,62 +91,162 @@ La console Compass est accessible de la façon suivante :
 
 > [!TIP]
 > Indice
->   Inspirez vous de la méthode [distinct](https://www.mongodb.com/docs/manual/reference/method/db.collection.distinct/)
+> Inspirez vous de la méthode [distinct](https://www.mongodb.com/docs/manual/reference/method/db.collection.distinct/)
 >
->  Voici un code à compléter :
->   ```javascript
->       db.movies.distinct(????)
->   ```
+> Voici un code à compléter :
+>
+> ```javascript
+>     db.films.distinct(????)
+> ```
+>
+> Voici la réponse :
+>
+> ```javascript
+> db.films.distinct("genre");
+> ```
 
 ---
 
 5. Afficher les titres des films français et leur date de sortie.
+   > Voici la réponse :
+   >
+   > ```javascript
+   > db.films.find({ country: "FR" }, { title: true, year: true });
+   > ```
 
 ---
 
 6. Afficher les titres des films et leur année de sortie dans lesquels "Uma Thurman" a joué.
+   > Voici la réponse :
+   >
+   > ```javascript
+   > db.films.find(
+   >   { "actors.last_name": "Thurman", "actors.first_name": "Uma" },
+   >   { title: true, year: true }
+   > );
+   > ```
 
 ---
 
 7. Afficher le nom complet du réalisateur du film "Memento" ?
+   > Voici la réponse :
+   >
+   > ```javascript
+   > db.films.find(
+   >   { title: "Memento" },
+   >   { "director.last_name": true, "director.first_name": true }
+   > );
+   > ```
 
 ---
 
 8. Afficher les noms et prénoms des acteurs qui ont joué dans "Apocalypse Now".
+   > Voici la réponse :
+   >
+   > ```javascript
+   > db.films.find(
+   >   { title: "Apocalypse Now" },
+   >   { "actors.last_name": true, "actors.first_name": true }
+   > );
+   > ```
 
 ---
 
 9. Afficher les titres des films sorties entre 1968 et 1978 inclus.
 
-> [!TIP]
-> [Voici un exemple d'utilisation de comparaison en MongoDB (à adapter au type que vous utilisez)](https://www.webhosting.uk.com/kb/how-to-find-objects-between-two-dates-in-mongodb/).
+> [!TIP] > [Voici un exemple d'utilisation de comparaison en MongoDB (à adapter au type que vous utilisez)](https://www.webhosting.uk.com/kb/how-to-find-objects-between-two-dates-in-mongodb/).
+>
+> Voici la réponse :
+>
+> ```javascript
+>     db.films.find({
+>        "$and" : [
+>            {"year" : {"$dt" : 1968}},
+>            {"year" : {"$lt" : 1978}}
+>        ],
+>        {"title" : true, "year" : true}
+>     })
+> ```
 
 ---
 
 10. Afficher les titres ainsi que l'année de sortie des films sorties avant l'année 1968 comprise (la même question mais année 1968 non comprise).
+>
+> Voici la réponse :
+>
+> ```javascript
+>     db.films.find(
+>       {"year" : {"$lte" : 1968}},
+>       {"title" : true, "year" : true}
+>   )
+> ```
+> Voici la réponse :
+>
+> ```javascript
+>     db.films.find(
+>       {"year" : {"$lt" : 1968}},
+>       {"title" : true, "year" : true}
+>   )
+> ```
 
 ---
 
 11. La même question que la précédente mais en triant la sortie par années croissantes, par années décroissantes. Enfin, vous n'afficherez cette fois que 5 lignes.
+>
+> Voici la réponse :
+>
+> ```javascript
+>     db.films.aggregate([
+>       { $match: { "year" : {"$lt" : 1968}}},
+>       { $porject: { "title": true, "year": true }},
+>       { $sort: { "year" : 1}}
+>   ])
+> ```
 
 ---
 
 12. Afficher tous les titres de films du genre "Action" ou "Aventure" ordonnés par genre.
+>
+> Voici la réponse :
+>
+> ```javascript
+>     db.films.aggregate([
+>       { $match: { $or: [{"genre": "Action"}, {"genre": "Aventure"}]}},
+>       { $porject: { "title": true, "genre": true }},
+>   ])
+> ```
 
 ---
 
 13. Afficher tous les titres de film dont le réalisateur n'est pas "Tarantino".
+>
+> Voici la réponse :
+>
+> ```javascript
+>     db.films.aggregate([
+>       { $match: { "director.last_name": { $ne: "Tarantino" } }},
+>       { $porject: { "title": true, "director.last_name": true }},
+>   ])
+> ```
 
 ---
 
 14. Afficher le nombre de films par genre en utilisant ici l'agrégation et les opérateurs $group (équivalent du "Group By" en SQL) et $sum (équivalent du "SUM" en SQL).
 
 Vous pourrez aussi utiliser l'interface proposée par MongoDB Compass pour composer cette requête d'agrégation.
+>
+> Voici la réponse :
+>
+> ```javascript
+>     db.films.aggregate([
+>       { $group: { "_id": "$genre", "sum_genre": { $sum: 1 } }}
+>   ])
+> ```
 
 ---
 
 15. Compter le nombre de documents qui composent cette collection et pour lesquels l'année de sortie du film est supérieure ou égale à l'année 2000.
-Vous pourrez vous intéresser à la fonction `count()`.
+    Vous pourrez vous intéresser à la fonction `count()`.
 
 ---
 
@@ -134,7 +259,7 @@ Vous pourrez vous intéresser à la fonction `count()`.
 ---
 
 18. Afficher uniquement les titres des films de la collection dont le champ "summary" contient la chaîne de caractères "famille ".
-Vous pourrez utiliser ici l'opérateur `$regex`.
+    Vous pourrez utiliser ici l'opérateur `$regex`.
 
 ---
 
@@ -146,6 +271,7 @@ Vous pourrez utiliser ici l'opérateur `$regex`.
 
 > [!TIP]
 > Résultat attendu :
+>
 > ```
 > - Impitoyable
 > - Le bon, la Brute et le Truand
@@ -161,7 +287,7 @@ Vous pourrez utiliser ici l'opérateur `$regex`.
 >       let film = recordset.next();
 >        print( "– " + film.title);
 >   }
->```
+> ```
 
 ---
 
@@ -169,6 +295,7 @@ Vous pourrez utiliser ici l'opérateur `$regex`.
 
 > [!TIP]
 > Résultat attendu :
+>
 > ```
 > 1. titre du film : Eternal Sunshine of the Spotless Mind
 > 2. titre du film : 2001 l'Odyssée de l'espace
@@ -188,8 +315,8 @@ Vous pourrez utiliser ici l'opérateur `$regex`.
 ---
 
 23. Ajouter l'actrice "Diane Keaton" née en 1946 au film "Le Parrain"
-Vous pourrez explorer une solution en utilisant l’opérateur `$push` en ligne de commande.
-Puis vous essayerez d'ajouter un acteur supplémentaire en utilisant l'interface graphique proposée par Compass.
+    Vous pourrez explorer une solution en utilisant l’opérateur `$push` en ligne de commande.
+    Puis vous essayerez d'ajouter un acteur supplémentaire en utilisant l'interface graphique proposée par Compass.
 
 > [!CAUTION]
 > Il n'y a pas de contrôle d'intégrité des données avec MongoDB, ainsi on pourrait rajouter autant de fois que
@@ -221,7 +348,6 @@ Puis vous essayerez d'ajouter un acteur supplémentaire en utilisant l'interface
 >
 > En ce qui concerne la ligne de commande, regardez du côté de `mongodump` : [Documentation mongodump](https://www.mongodb.com/docs/database-tools/mongodump/)
 
-
 ### Les jointures en MongoDB
 
 #### Création d'une nouvelle collection
@@ -233,30 +359,36 @@ Il vous est proposé de créer une nouvelle collection "exploitation" permettant
 Voici un apperçu de cette nouvelle collection, les films de cet exemple sont : "Ben-Hur", "E.T. l’extra-terrestre", "Mars Attacks !", "Blade Runner", "Predator.
 
 | film_id | box_office_fr | box_office_us |
-|---|---|---|
-| 665 | 13850000 | 98000000 |
-| 601 | 9420000 | 140000000 |
-| 75 | 2150000 | 100000000 |
-| 78 | 2130000 | 95000000 |
-| 106 | 1500000 | 120000000 |
+| ------- | ------------- | ------------- |
+| 665     | 13850000      | 98000000      |
+| 601     | 9420000       | 140000000     |
+| 75      | 2150000       | 100000000     |
+| 78      | 2130000       | 95000000      |
+| 106     | 1500000       | 120000000     |
 
 Marche à suivre :
+
 1. créer une collection "exploitation"
 2. insérer les documents en utilisant la méthode `insertOne()`
 
 Pour le film "Ben-Hur" la requête est la suivante :
+
 ```javascript
-db.exploitation.insertOne({"box_office_fr" : 13850000, "box_office_us" : 98000000, "film_id" : "movie:665"});
+db.exploitation.insertOne({
+  box_office_fr: 13850000,
+  box_office_us: 98000000,
+  film_id: "movie:665",
+});
 ```
 
 3. faire la même chose pour les autres films
 
-#### Requêtage avec les jointures 
+#### Requêtage avec les jointures
 
 Afin de tester les « jointures » avec MongoDB, vous devrez créer une agrégation en formant votre "Pipeline" avec les opérateurs qui suivent : `$lookup` et `$project`.
 
 1. Afficher le titre des films ainsi que le nombre d’entrées au box-office français pour les films concernés par cette jointure.
-Vous devrez chercher de la documentation sur l’opérateur `$lookup`.
+   Vous devrez chercher de la documentation sur l’opérateur `$lookup`.
 
 ---
 
